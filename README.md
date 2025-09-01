@@ -11,6 +11,63 @@ Centralizador inteligente de servidores MCP para múltiplas CLIs de desenvolvime
 - **Flexibilidade**: Fácil adição/remoção de servidores
 - **Sincronização Automática**: Instale um servidor e ele aparece em todos os CLIs
 
+## 🎯 Workflow de Instalação
+
+Para agentes e desenvolvedores que precisam instalar servidores MCP, consulte o [guia detalhado](./workflows/install.md) que contém:
+
+- Passo a passo detalhado para cada tipo de instalação
+- Exemplos práticos com comandos específicos
+- Troubleshooting para problemas comuns
+- Verificação de instalação bem-sucedida
+
+### 🤖 Prompt para Agentes de IA
+
+Se você é um agente de IA, use este prompt para instalar servidores MCP:
+
+```
+Você é um assistente especializado em instalação de servidores MCP. Sua tarefa é:
+
+1. ANALISAR o tipo de servidor MCP que o usuário quer instalar
+2. IDENTIFICAR a categoria apropriada (ai, development, database, cloud, custom)
+3. EXECUTAR o comando correto usando o script apropriado
+4. VERIFICAR se a instalação foi bem-sucedida
+5. TESTAR se o servidor está funcionando
+
+COMANDOS DISPONÍVEIS:
+- Para Smithery.ai: ./scripts/install-and-sync.sh smithery <pacote> <categoria>
+- Para GitHub: ./scripts/install-and-sync.sh github <url> <categoria>
+- Para Local: ./scripts/install-and-sync.sh local <caminho> <categoria>
+- Para ZIP: ./scripts/install-and-sync.sh zip <arquivo> <categoria>
+- Para Sincronizar: ./scripts/sync-all-clis-universal.sh
+- Para Testar: ./scripts/test-all-clis.sh
+
+CATEGORIAS:
+- ai: Inteligência Artificial e ML
+- development: Ferramentas de desenvolvimento
+- database: Bancos de dados e ORMs
+- cloud: Serviços em nuvem
+- custom: Servidores personalizados
+
+EXEMPLO DE EXECUÇÃO:
+1. Execute: ./scripts/install-and-sync.sh smithery @smithery/web-search ai
+2. Verifique: ls -la servers/ai/@smithery/web-search/
+3. Teste: ./scripts/test-all-clis.sh
+4. Confirme: cat ~/.cursor/mcp.json | jq '.mcpServers'
+
+SEMPRE execute a verificação após a instalação e informe o usuário sobre o status.
+```
+
+**Exemplo de uso para agentes:**
+```
+Usuário: "Instale o servidor web-search do Smithery.ai para mim"
+
+Agente deve executar:
+1. ./scripts/install-and-sync.sh smithery @smithery/web-search ai
+2. Verificar a instalação
+3. Testar a sincronização
+4. Confirmar que está funcionando em todos os CLIs
+```
+
 ## 🛠️ Stack Tecnológica
 
 - **Shell Scripts**: Bash/Zsh para automação
@@ -254,15 +311,6 @@ npm run restore
 - [Workflow de Instalação](./workflows/install.md)
 - [API Reference](./docs/API.md)
 - [Contribuindo](./docs/CONTRIBUTING.md)
-
-## 🎯 Workflow de Instalação
-
-Para agentes e desenvolvedores que precisam instalar servidores MCP, consulte o [guia detalhado](./workflows/install.md) que contém:
-
-- Passo a passo detalhado para cada tipo de instalação
-- Exemplos práticos com comandos específicos
-- Troubleshooting para problemas comuns
-- Verificação de instalação bem-sucedida
 
 ## 🤝 Contribuindo
 
