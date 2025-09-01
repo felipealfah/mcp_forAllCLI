@@ -1,0 +1,25 @@
+{
+  "name": "context7-server",
+  "description": "Servidor MCP oficial para integração com Context7",
+  "version": "1.0.0",
+  "category": "ai",
+  "type": "npx",
+  "enabled": true,
+  "auto_start": false,
+  "restart_on_failure": true,
+  "log_level": "info",
+  "env_vars": ["CONTEXT7_API_KEY"],
+  "command": "npx",
+  "args": ["-y", "@upstash/context7-mcp", "--api-key", "ctx7sk-dffbb00c-6537-44b3-8d1d-0d67edca9d22"],
+  "capabilities": {
+    "tools": {
+      "listChanged": true
+    }
+  },
+  "tools": [
+    "resolve-library-id",
+    "get-library-docs"
+  ],
+  "created_at": "2025-09-01T15:17:02.000Z",
+  "updated_at": "2025-09-01T15:17:02.000Z"
+}

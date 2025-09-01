@@ -1,0 +1,65 @@
+{
+  "project": {
+    "name": "MCP Servers Hub",
+    "version": "1.0.0",
+    "description": "Centralizador de servidores MCP para múltiplas CLIs"
+  },
+  "paths": {
+    "servers": "./servers",
+    "configs": "./configs",
+    "scripts": "./scripts",
+    "docs": "./docs",
+    "logs": "./logs",
+    "cli_profiles": "./cli-profiles"
+  },
+  "servers": {
+    "categories": [
+      "ai",
+      "development", 
+      "database",
+      "cloud",
+      "custom"
+    ],
+    "default_config": {
+      "enabled": true,
+      "auto_start": false,
+      "restart_on_failure": true,
+      "log_level": "info"
+    }
+  },
+  "clis": {
+    "supported": [
+      "cursor",
+      "vscode", 
+      "neovim",
+      "emacs",
+      "sublime",
+      "intellij"
+    ],
+    "config_paths": {
+      "cursor": "~/.cursor/mcp_servers",
+      "vscode": "~/.vscode/mcp_servers",
+      "neovim": "~/.config/nvim/mcp_servers",
+      "emacs": "~/.emacs.d/mcp_servers",
+      "sublime": "~/.config/sublime-text-3/mcp_servers",
+      "intellij": "~/.config/JetBrains/IntelliJIdea*/mcp_servers"
+    }
+  },
+  "sync": {
+    "auto_sync": true,
+    "sync_interval": 300000,
+    "backup_before_sync": true,
+    "max_backups": 10
+  },
+  "logging": {
+    "level": "info",
+    "file": "./logs/mcp-hub.log",
+    "max_size": "10MB",
+    "max_files": 5
+  },
+  "security": {
+    "validate_configs": true,
+    "check_permissions": true,
+    "encrypt_sensitive": false
+  }
+}

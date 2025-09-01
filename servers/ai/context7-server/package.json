@@ -1,0 +1,20 @@
+{
+  "name": "context7-server",
+  "version": "1.0.0",
+  "description": "Servidor MCP para integração com Context7",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "npx -y @upstash/context7-mcp --api-key $CONTEXT7_API_KEY",
+    "dev": "npx -y @upstash/context7-mcp --api-key $CONTEXT7_API_KEY",
+    "test": "echo 'Teste do servidor Context7'",
+    "install-official": "npm install -g @upstash/context7-mcp"
+  },
+  "dependencies": {
+    "@upstash/context7-mcp": "latest"
+  },
+  "devDependencies": {},
+  "keywords": ["mcp", "server", "ai", "context7"],
+  "author": "MCP Hub",
+  "license": "MIT"
+}
