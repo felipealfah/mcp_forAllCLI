@@ -1,0 +1,8 @@
+{
+  "name": "emacs",
+  "enabled": false,
+  "config_path": "~/.emacs.d/mcp_servers",
+  "servers": [],
+  "last_sync": null,
+  "status": "disconnected"
+}

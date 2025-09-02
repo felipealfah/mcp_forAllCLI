@@ -31,6 +31,10 @@ npm --version
 
 # Verificar se npx está disponível
 npx --version
+
+# Verificar se PM2 está instalado (será instalado automaticamente se não estiver)
+pm2 --version
+# PM2 é usado para gerenciamento de processos e auto-inicialização
 ```
 
 ### Verificar Estrutura do Projeto
@@ -234,6 +238,97 @@ cat servers/custom/meu-servidor/config.json
 ./scripts/install-and-sync.sh local ./rust-server development
 ```
 
+## 🔄 Configuração do PM2 (Gerenciamento de Processos)
+
+### O que é PM2?
+
+O PM2 é um gerenciador de processos para aplicações Node.js que permite:
+- **Auto-inicialização**: Servidores iniciam automaticamente após reinicialização do sistema
+- **Monitoramento**: Acompanhar status, logs e performance dos servidores
+- **Recuperação automática**: Reiniciar servidores que falharam automaticamente
+
+### Configuração Automática
+
+O script `install.sh` configura o PM2 automaticamente:
+
+```bash
+# Executar instalação completa com PM2
+./install.sh
+
+# O script irá:
+# 1. Verificar se PM2 está instalado (instala se necessário)
+# 2. Configurar servidores MCP no PM2
+# 3. Salvar configuração PM2
+# 4. Mostrar comando para auto-inicialização
+```
+
+### Comandos Úteis do PM2
+
+```bash
+# Ver status dos servidores
+pm2 status
+
+# Ver logs em tempo real
+pm2 logs mcp-servers
+
+# Reiniciar todos os servidores
+pm2 restart mcp-servers
+
+# Parar todos os servidores
+pm2 stop mcp-servers
+
+# Deletar configuração PM2
+pm2 delete mcp-servers
+
+# Salvar configuração atual
+pm2 save
+
+# Configurar auto-inicialização (requer sudo)
+pm2 startup
+# Execute o comando sudo que será exibido
+
+# Ver monitoramento visual
+pm2 monit
+```
+
+### Configuração Manual do PM2
+
+Se precisar configurar manualmente:
+
+```bash
+# 1. Instalar PM2 globalmente
+npm install -g pm2
+
+# 2. Tornar script executável
+chmod +x scripts/start-all-servers.sh
+
+# 3. Iniciar com PM2
+pm2 start scripts/start-all-servers.sh --name mcp-servers
+
+# 4. Salvar configuração
+pm2 save
+
+# 5. Configurar auto-inicialização
+pm2 startup
+# Execute o comando sudo mostrado
+```
+
+### Verificar Configuração PM2
+
+```bash
+# Verificar se servidores estão rodando
+pm2 status
+
+# Ver detalhes do processo
+pm2 show mcp-servers
+
+# Ver últimos logs
+pm2 logs mcp-servers --lines 50
+
+# Verificar se auto-inicialização está configurada
+pm2 startup --help
+```
+
 ## 📦 Instalação via ZIP
 
 ### Passo a Passo Detalhado
@@ -320,7 +415,24 @@ cat ~/.claude/settings.json | jq '.mcpServers'
 cat ~/.gemini/settings.json | jq '.mcpServers'
 ```
 
-### 4. Testar o Servidor
+### 4. Verificar PM2 (se configurado)
+
+```bash
+# Verificar se servidores estão rodando no PM2
+pm2 status
+
+# Verificar logs dos servidores
+pm2 logs mcp-servers --lines 20
+
+# Verificar se auto-inicialização está configurada
+pm2 list
+
+# Se PM2 não estiver configurado, configurar
+pm2 start scripts/start-all-servers.sh --name mcp-servers
+pm2 save
+```
+
+### 5. Testar o Servidor
 
 ```bash
 # Executar teste universal
@@ -430,6 +542,71 @@ cat ~/.cursor/mcp.json | jq .
 tail -f ~/.cursor/logs/*.log
 ```
 
+### Problema: "PM2 não inicia automaticamente"
+
+```bash
+# Verificar se PM2 está instalado
+pm2 --version
+
+# Se não estiver, instalar
+npm install -g pm2
+
+# Verificar se processo está rodando
+pm2 status
+
+# Se não estiver, iniciar
+pm2 start scripts/start-all-servers.sh --name mcp-servers
+pm2 save
+
+# Configurar auto-inicialização
+pm2 startup
+# Execute o comando sudo mostrado
+```
+
+### Problema: "Servidores PM2 ficam reiniciando"
+
+```bash
+# Verificar logs para identificar erros
+pm2 logs mcp-servers
+
+# Verificar se dependências estão instaladas
+cd servers/categoria/servidor/
+npm install
+
+# Verificar se script de build funcionou
+npm run build
+
+# Parar e reiniciar limpo
+pm2 delete mcp-servers
+pm2 start scripts/start-all-servers.sh --name mcp-servers
+pm2 save
+```
+
+### Problema: "PM2 não encontra script start-all-servers.sh"
+
+```bash
+# Verificar se script existe
+ls -la scripts/start-all-servers.sh
+
+# Se não existir, criar
+cat > scripts/start-all-servers.sh << 'EOF'
+#!/bin/bash
+echo "Iniciando todos os servidores MCP instalados..."
+find "$PWD/servers/" -name "package.json" | while read package_json_path; do
+    server_dir=$(dirname "$package_json_path")
+    server_name=$(basename "$server_dir")
+    echo "Verificando servidor em: $server_dir"
+    if grep -q '"start":' "$package_json_path"; then
+        echo "  -> Iniciando $server_name..."
+        (cd "$server_dir" && npm start &)
+    fi
+done
+EOF
+
+# Tornar executável
+chmod +x scripts/start-all-servers.sh
+```
+
 ## 📝 Exemplos Práticos
 
 ### Exemplo 1: Instalar Context7
@@ -499,6 +676,8 @@ Após cada instalação, verifique:
 - [ ] README.md existe
 - [ ] Sincronização executada com sucesso
 - [ ] CLIs configurados corretamente
+- [ ] **PM2 configurado e rodando** 🆕
+- [ ] **Auto-inicialização configurada** 🆕
 - [ ] Servidor testado e funcionando
 - [ ] Logs sem erros
 

@@ -1,0 +1,8 @@
+{
+  "name": "neovim",
+  "enabled": false,
+  "config_path": "~/.config/nvim/mcp_servers",
+  "servers": [],
+  "last_sync": null,
+  "status": "disconnected"
+}

@@ -1,0 +1,8 @@
+{
+  "name": "vscode",
+  "enabled": false,
+  "config_path": "~/.vscode/mcp_servers",
+  "servers": [],
+  "last_sync": null,
+  "status": "disconnected"
+}

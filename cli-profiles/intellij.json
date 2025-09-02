@@ -1,0 +1,8 @@
+{
+  "name": "intellij",
+  "enabled": false,
+  "config_path": "~/.config/JetBrains/IntelliJIdea*/mcp_servers",
+  "servers": [],
+  "last_sync": null,
+  "status": "disconnected"
+}

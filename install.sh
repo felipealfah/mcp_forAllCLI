@@ -57,6 +57,15 @@ check_prerequisites() {
     
     print_success "npm $(npm --version) encontrado"
     
+    # Verificar PM2
+    if ! command -v pm2 &> /dev/null; then
+        print_warning "PM2 não encontrado. Será instalado automaticamente para gerenciamento de processos."
+        npm install -g pm2
+        print_success "PM2 instalado com sucesso"
+    else
+        print_success "PM2 $(pm2 --version) encontrado"
+    fi
+    
     # Verificar Git
     if ! command -v git &> /dev/null; then
         print_warning "Git não encontrado. A instalação continuará, mas você não poderá versionar suas configurações."
@@ -109,6 +118,85 @@ setup_environment() {
     fi
 }
 
+# Função para configurar PM2
+setup_pm2() {
+    print_message "Configurando PM2 para auto-inicialização..."
+    
+    # Verificar se o script start-all-servers.sh existe
+    if [ -f "scripts/start-all-servers.sh" ]; then
+        chmod +x scripts/start-all-servers.sh
+        print_success "Script start-all-servers.sh configurado como executável"
+    else
+        print_error "Script scripts/start-all-servers.sh não encontrado"
+        print_message "Criando script de inicialização..."
+        
+        mkdir -p scripts
+        cat > scripts/start-all-servers.sh << 'EOF'
+#!/bin/bash
+
+# Script para iniciar todos os servidores MCP instalados
+
+echo "Iniciando todos os servidores MCP instalados..."
+
+# Encontra todos os arquivos package.json dentro do diretório servers/
+find "$PWD/servers/" -name "package.json" | while read package_json_path; do
+    server_dir=$(dirname "$package_json_path")
+    server_name=$(basename "$server_dir")
+
+    echo "Verificando servidor em: $server_dir"
+
+    # Verifica se o package.json contém um script "start"
+    if grep -q '"start":' "$package_json_path"; then
+        echo "  -> Encontrado script 'start' para $server_name. Preparando para iniciar..."
+        (
+            cd "$server_dir" || { echo "Erro: Não foi possível mudar para o diretório $server_dir"; exit 1; }
+            echo "    -> Instalando dependências e compilando $server_name..."
+            pnpm install --frozen-lockfile || npm install || { echo "Erro ao instalar dependências para $server_name"; exit 1; }
+            pnpm build || npm run build || { echo "Aviso: Falha ao compilar $server_name, tentando iniciar mesmo assim..."; }
+            echo "    -> Iniciando $server_name em segundo plano..."
+            pnpm start &
+            echo "    -> $server_name iniciado (PID: $!)"
+        ) & 
+    else
+        echo "  -> Script 'start' não encontrado em $package_json_path. Pulando $server_name."
+    fi
+done
+
+echo "Processo de inicialização de servidores concluído."
+EOF
+        chmod +x scripts/start-all-servers.sh
+        print_success "Script start-all-servers.sh criado com sucesso"
+    fi
+    
+    # Configurar PM2
+    print_message "Configurando servidores no PM2..."
+    
+    # Parar processo existente se houver
+    pm2 delete mcp-servers 2>/dev/null || true
+    
+    # Iniciar com PM2
+    pm2 start scripts/start-all-servers.sh --name mcp-servers
+    
+    # Salvar configuração PM2
+    pm2 save
+    
+    print_success "Servidores MCP configurados no PM2"
+    
+    # Instruções para startup automático
+    echo ""
+    print_warning "Para configurar inicialização automática após reinicialização:"
+    echo "Execute o seguinte comando (requer senha de administrador):"
+    echo ""
+    pm2_startup_cmd=$(pm2 startup 2>&1 | grep "sudo env" | head -1)
+    if [ -n "$pm2_startup_cmd" ]; then
+        echo "$pm2_startup_cmd"
+    else
+        echo "pm2 startup"
+        echo "(e execute o comando sudo que será exibido)"
+    fi
+    echo ""
+}
+
 # Função para mostrar próximos passos
 show_next_steps() {
     echo ""
@@ -127,10 +215,13 @@ show_next_steps() {
     echo "3. Adicione seus servidores MCP:"
     echo "   npm run add-server"
     echo ""
-    echo "4. Sincronize com suas CLIs:"
+    echo "4. Configure PM2 para auto-inicialização (opcional):"
+    echo "   Execute o comando sudo mostrado acima"
+    echo ""
+    echo "5. Sincronize com suas CLIs:"
     echo "   npm run sync"
     echo ""
-    echo "5. Verifique o status:"
+    echo "6. Verifique o status:"
     echo "   npm run status"
     echo ""
     echo -e "${BLUE}Documentação:${NC}"
@@ -141,6 +232,11 @@ show_next_steps() {
     echo "   npm run status        # Verificar status do sistema"
     echo "   npm run list-servers  # Listar servidores"
     echo "   npm run list-clis     # Listar CLIs conectadas"
+    echo ""
+    echo "   pm2 status             # Ver status dos servidores PM2"
+    echo "   pm2 logs mcp-servers   # Ver logs dos servidores"
+    echo "   pm2 restart mcp-servers # Reiniciar servidores"
+    echo "   pm2 stop mcp-servers   # Parar servidores"
     echo ""
     echo -e "${YELLOW}💡 Dica:${NC} Execute 'npm run status' para verificar a saúde do sistema"
     echo ""
@@ -170,6 +266,9 @@ main() {
     
     # Configurar ambiente
     setup_environment
+    
+    # Configurar PM2
+    setup_pm2
     
     # Mostrar próximos passos
     show_next_steps

@@ -1,0 +1,8 @@
+{
+  "name": "cursor",
+  "enabled": false,
+  "config_path": "~/.cursor/mcp_servers",
+  "servers": [],
+  "last_sync": null,
+  "status": "disconnected"
+}
