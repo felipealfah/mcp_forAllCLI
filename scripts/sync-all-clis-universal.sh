@@ -38,7 +38,7 @@ info() {
 
 # Função para detectar todos os servidores MCP
 detect_all_servers() {
-    local servers=()
+    declare -a servers
     
     # Procurar por servidores em todas as categorias
     for category in servers/*/; do
@@ -51,12 +51,10 @@ detect_all_servers() {
                     if [[ -f "$config_file" ]]; then
                         # Extrair informações do config.json
                         local server_type=$(jq -r '.type // "unknown"' "$config_file" 2>/dev/null || echo "unknown")
-                        local server_command=$(jq -r '.command // "node"' "$config_file" 2>/dev/null || echo "node")
-                        local server_args=$(jq -r '.args // []' "$config_file" 2>/dev/null || echo "[]")
                         
                         # Verificar se é um servidor válido
                         if [[ "$server_type" != "unknown" ]] && [[ -n "$server_name" ]] && [[ "$server_name" != "context7-server" ]]; then
-                            servers+=("$server_name:$server_type:$server_command:$server_args:$config_file")
+                            servers+=("$server_name|$server_type|$config_file")
                         fi
                     fi
                 fi
@@ -65,9 +63,9 @@ detect_all_servers() {
     done
     
     # Adicionar o Context7 manualmente (já que sabemos que funciona)
-    servers+=("context7:npx:npx:[\"-y\",\"@upstash/context7-mcp\",\"--api-key\",\"ctx7sk-dffbb00c-6537-44b3-8d1d-0d67edca9d22\"]:servers/ai/context7-server/config.json")
+    servers+=("context7|npx|manual")
     
-    echo "${servers[@]}"
+    printf "%s\n" "${servers[@]}"
 }
 
 # Função para configurar um CLI com todos os servidores
@@ -99,8 +97,9 @@ EOF
     
     # Adicionar cada servidor
     local first_server=true
-    for server_info in $servers_info; do
-        IFS=':' read -r server_name server_type server_command server_args config_file <<< "$server_info"
+    while IFS= read -r server_info; do
+        [[ -z "$server_info" ]] && continue
+        IFS='|' read -r server_name server_type config_file <<< "$server_info"
         
         if [[ "$server_type" == "npx" ]]; then
             # Servidor npx (como Context7)
@@ -112,10 +111,16 @@ EOF
                 echo "    \"$server_name\": {" >> "$settings_file"
             fi
             
-            # Extrair argumentos do config.json
-            local args=$(jq -r '.args | map("\"" + . + "\"") | join(", ")' "$config_file" 2>/dev/null || echo "\"-y\", \"$server_name\"")
-            echo "      \"command\": \"npx\"," >> "$settings_file"
-            echo "      \"args\": [$args]" >> "$settings_file"
+            if [[ "$server_name" == "context7" ]]; then
+                # Context7 com configuração hardcoded
+                echo "      \"command\": \"npx\"," >> "$settings_file"
+                echo "      \"args\": [\"-y\", \"@upstash/context7-mcp\", \"--api-key\", \"ctx7sk-dffbb00c-6537-44b3-8d1d-0d67edca9d22\"]" >> "$settings_file"
+            else
+                # Extrair argumentos do config.json
+                local args=$(jq -r '.args | map("\"" + . + "\"") | join(", ")' "$config_file" 2>/dev/null || echo "\"-y\", \"$server_name\"")
+                echo "      \"command\": \"npx\"," >> "$settings_file"
+                echo "      \"args\": [$args]" >> "$settings_file"
+            fi
             echo "    }" >> "$settings_file"
             
         elif [[ "$server_type" == "node" ]]; then
@@ -128,14 +133,29 @@ EOF
                 echo "    \"$server_name\": {" >> "$settings_file"
             fi
             
+            # Primeiro, tentar ler o path do config.json
             local server_path=$(jq -r '.path // ""' "$config_file" 2>/dev/null || echo "")
-            if [[ -n "$server_path" ]]; then
-                echo "      \"command\": \"node\"," >> "$settings_file"
-                echo "      \"args\": [\"$server_path\"]" >> "$settings_file"
-            else
-                echo "      \"command\": \"node\"," >> "$settings_file"
-                echo "      \"args\": [\"$server_dir/server.js\"]" >> "$settings_file"
+            
+            # Se não encontrar, tentar construir o caminho baseado na estrutura do projeto
+            if [[ -z "$server_path" ]] || [[ "$server_path" == "null" ]]; then
+                # Extrair o diretório base do config_file
+                local server_base_dir=$(dirname "$config_file")
+                local abs_server_dir=$(cd "$server_base_dir" && pwd)
+                
+                # Verificar se existe dist/index.js (padrão TypeScript)
+                if [[ -f "$abs_server_dir/dist/index.js" ]]; then
+                    server_path="$abs_server_dir/dist/index.js"
+                elif [[ -f "$abs_server_dir/index.js" ]]; then
+                    server_path="$abs_server_dir/index.js"
+                elif [[ -f "$abs_server_dir/server.js" ]]; then
+                    server_path="$abs_server_dir/server.js"
+                else
+                    server_path="$abs_server_dir/dist/index.js"  # fallback
+                fi
             fi
+            
+            echo "      \"command\": \"node\"," >> "$settings_file"
+            echo "      \"args\": [\"$server_path\"]" >> "$settings_file"
             echo "    }" >> "$settings_file"
             
         else
@@ -154,7 +174,7 @@ EOF
         fi
         
         log "   ✅ Adicionado: $server_name ($server_type)"
-    done
+    done <<< "$servers_info"
     
     # Finalizar configuração
     cat >> "$settings_file" << EOF
@@ -270,10 +290,11 @@ main() {
     
     # Mostrar servidores detectados
     log "📋 Servidores detectados:"
-    for server_info in $servers_info; do
-        IFS=':' read -r server_name server_type server_command server_args config_file <<< "$server_info"
+    while IFS= read -r server_info; do
+        [[ -z "$server_info" ]] && continue
+        IFS='|' read -r server_name server_type config_file <<< "$server_info"
         echo "   🔧 $server_name ($server_type)"
-    done
+    done <<< "$servers_info"
     
     # Sincronizar com todos os CLIs
     sync_all_clis "$servers_info"

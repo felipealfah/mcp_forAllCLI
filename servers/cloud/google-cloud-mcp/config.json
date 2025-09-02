@@ -1,0 +1,17 @@
+{
+  "name": "google-cloud-mcp",
+  "description": "Servidor MCP existente",
+  "version": "1.0.0",
+  "category": "cloud",
+  "type": "node",
+  "command": "node",
+  "path": "/Users/felipefull/Documents/MCP_servers/servers/cloud/google-cloud-mcp/dist/index.js",
+  "args": ["/Users/felipefull/Documents/MCP_servers/servers/cloud/google-cloud-mcp/dist/index.js"],
+  "enabled": true,
+  "auto_start": false,
+  "restart_on_failure": true,
+  "log_level": "info",
+  "env_vars": [""],
+  "created_at": "2025-09-01T18:33:27.000Z",
+  "updated_at": "2025-09-02T11:50:00.000Z"
+}

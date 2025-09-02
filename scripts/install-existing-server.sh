@@ -186,7 +186,7 @@ install_from_zip() {
     local category="$2"
     local url="$3"
     local server_path="$SERVERS_DIR/$category/$server_name"
-    local temp_zip="/tmp/mcp-server-$$.zip"
+    local temp_zip="/tmp/mcp-server-$.zip"
     
     print_message "Instalando servidor de ZIP: $url"
     
@@ -206,7 +206,7 @@ install_from_zip() {
         print_success "ZIP baixado com sucesso"
         
         # Criar diretório temporário
-        local temp_dir="/tmp/mcp-server-$$"
+        local temp_dir="/tmp/mcp-server-$"
         mkdir -p "$temp_dir"
         
         # Extrair ZIP
@@ -496,48 +496,48 @@ main() {
             -c|--category)
                 category="$2"
                 shift 2
-                ;;
+                ;; 
             -s|--source)
                 source="$2"
                 shift 2
-                ;;
+                ;; 
             -u|--url)
                 url="$2"
                 shift 2
-                ;;
+                ;; 
             -p|--path)
                 local_path="$2"
                 shift 2
-                ;;
+                ;; 
             -t|--type)
                 server_type="$2"
                 shift 2
-                ;;
+                ;; 
             -d|--description)
                 description="$2"
                 shift 2
-                ;;
+                ;; 
             -e|--env-vars)
                 env_vars="$2"
                 shift 2
-                ;;
+                ;; 
             -i|--install-deps)
                 install_deps="true"
                 shift
-                ;;
+                ;; 
             -f|--force)
                 force="true"
                 shift
-                ;;
+                ;; 
             -h|--help)
                 show_help
                 exit 0
-                ;;
+                ;; 
             -*)
                 print_error "Opção desconhecida: $1"
                 show_help
                 exit 1
-                ;;
+                ;; 
             *)
                 if [[ -z "$server_name" ]]; then
                     server_name="$1"
@@ -546,7 +546,7 @@ main() {
                     exit 1
                 fi
                 shift
-                ;;
+                ;; 
         esac
     done
     
@@ -576,19 +576,19 @@ main() {
                 print_error "URL é obrigatória para fonte github"
                 exit 1
             fi
-            ;;
+            ;; 
         "local")
             if [[ -z "$local_path" ]]; then
                 print_error "Caminho local é obrigatório para fonte local"
                 exit 1
             fi
-            ;;
+            ;; 
         "zip")
             if [[ -z "$url" ]]; then
                 print_error "URL é obrigatória para fonte zip"
                 exit 1
             fi
-            ;;
+            ;; 
     esac
     
     # Mostrar resumo da instalação
@@ -611,13 +611,13 @@ main() {
     echo "   Instalar Dependências: $install_deps"
     echo ""
     
-    # Confirmar instalação
-    read -p "Continuar com a instalação? (y/N): " -n 1 -r
-    echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        print_info "Instalação cancelada"
-        exit 0
-    fi
+    # Confirmar instalação (desativado para chamadas não interativas)
+    # read -p "Continuar com a instalação? (y/N): " -n 1 -r
+    # echo
+    # if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    #     print_info "Instalação cancelada"
+    #     exit 0
+    # fi
     
     # Executar instalação
     print_message "Iniciando instalação do servidor $server_name..."
@@ -628,17 +628,17 @@ main() {
             if ! install_from_github "$server_name" "$category" "$url"; then
                 exit 1
             fi
-            ;;
+            ;; 
         "local")
             if ! install_from_local "$server_name" "$category" "$local_path"; then
                 exit 1
             fi
-            ;;
+            ;; 
         "zip")
             if ! install_from_zip "$server_name" "$category" "$url"; then
                 exit 1
             fi
-            ;;
+            ;; 
     esac
     
     # Criar configuração básica

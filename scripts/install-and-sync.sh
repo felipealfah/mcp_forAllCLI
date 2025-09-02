@@ -83,27 +83,30 @@ install_smithery() {
 install_github() {
     local repo_url="$1"
     local category="${2:-custom}"
-    
+    local server_name=$(basename "$repo_url" .git)
+
     info "📥 Instalando do GitHub: $repo_url"
-    ./scripts/install-existing-server.sh github "$repo_url" "$category"
+    ./scripts/install-existing-server.sh "$server_name" --source github --url "$repo_url" --category "$category" --install-deps --force
 }
 
 # Função para instalar de caminho local
 install_local() {
     local local_path="$1"
     local category="${2:-custom}"
-    
+    local server_name=$(basename "$local_path")
+
     info "📁 Instalando de caminho local: $local_path"
-    ./scripts/install-existing-server.sh local "$local_path" "$category"
+    ./scripts/install-existing-server.sh "$server_name" --source local --path "$local_path" --category "$category" --install-deps --force
 }
 
 # Função para instalar de ZIP
 install_zip() {
     local zip_file="$1"
     local category="${2:-custom}"
-    
+    local server_name=$(basename "$zip_file" .zip)
+
     info "📦 Instalando de arquivo ZIP: $zip_file"
-    ./scripts/install-existing-server.sh zip "$zip_file" "$category"
+    ./scripts/install-existing-server.sh "$server_name" --source zip --url "$zip_file" --category "$category" --install-deps --force
 }
 
 # Função para sincronizar todos os CLIs
